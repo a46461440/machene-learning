@@ -135,5 +135,3 @@ if __name__ == '__main__':
     labels = ['alive without water', 'jiaopu']
     tree = createTree(dataSet, labels)
     print(tree)
-    # bestCharIndex = chooseBestFeatureToSpilit(dataSet)
-    # print(bestCharIndex)
