@@ -20,3 +20,8 @@ resultIndex = sorted(classCount.items(), key=lambda item: item[1])
 print(resultIndex)
 # print(resultIndex[0][0])
 # print([v for v in classCount.values().argsort()])
+
+array = [1, 2, 3, 4, 5, 6]
+retData = array[:2]
+retData.extend(array[3:])
+print(retData)
