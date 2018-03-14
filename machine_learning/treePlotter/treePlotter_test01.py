@@ -1,17 +1,18 @@
 from numpy import *
 from math import log
 
-"""
-决策树模型
-"""
+from machine_learning.treePlotter import getTreePlotter
 
-
+"""
+决策树模型(ID3算法)
+"""
 def createDataSet():
     """
     创建数据集
     """
     dataSet = [
         [1, 1, 'yes'],
+        [1, 0, 'no'],
         [1, 0, 'no'],
         [0, 1, 'no'],
         [0, 1, 'no'],
@@ -23,6 +24,9 @@ def createDataSet():
 def calcShannonEnt(dataSet):
     """
     计算数据集的香农熵
+    具体过程 计算每个分类在当前数据集中的比例props(选择当前分类的概率)
+    根据公式，使 -props * log2(props) 求和
+    其中-log2(props)为单个信息量
     :param dataSet:
     """
     dataSetSize = len(dataSet)
@@ -40,10 +44,9 @@ def calcShannonEnt(dataSet):
 
 
 """
-条件熵 在已经一个特征的值的情况下该数据集的香农熵
+条件熵 在已经一个特征的值的情况下该数据集的香农熵 那么这个用哪个值固定特征呢？每个值都要用到并且取均值
+信息增益 数据集熵-条件熵  H(X,A) = H(X) - ∑pi * H(pi) 其中pi为某一确定值的属性概率
 """
-
-
 def spilitDataSet(dataSet, charIndex, value):
     """
     1.划分数据集
@@ -64,7 +67,7 @@ def calcConditionalEntropy(dataSet, charIndex, uniqueValues):
     """
     2.计算条件熵
     :param dataSet:数据集
-    :param i:维度
+    :param charIndex:维度
     :param uniqueValues:数据集特征集合
     :return:
     """
@@ -96,6 +99,7 @@ def chooseBestFeatureToSpilit(dataSet):
 
 
 def majorityCnt(classList):
+    print(classList)
     classCount = {}
     for clazz in classList:
         if clazz not in classCount:
@@ -129,9 +133,66 @@ def createTree(dataSet, labels):
     return tree
 
 
+def classify(tree, labels, vector):
+    """
+    使用决策树对vector进行分类
+    :param tree: 构建好的决策树
+    :param labels: 特征值
+    :param vector: 待测向量
+    """
+    firstFeatStr = list(tree.keys())[0]
+    secondDic = tree[firstFeatStr]
+    if type(secondDic).__name__ != 'dict':
+        return str(secondDic)
+    else:
+        featIndex = labels.index(firstFeatStr)
+        for key in list(secondDic.keys()):
+            if vector[featIndex] == key:
+                if type(secondDic[key]).__name__ == 'dict':
+                    return classify(secondDic, labels, vector)
+                else:
+                    return secondDic[key]
+
+
+def storeTree(tree, filename):
+    """
+    存入决策树
+    :param tree:
+    :param filename:
+    :return:
+    """
+    import pickle
+    with open(filename, "wb") as fw:
+        pickle.dump(tree, fw)
+        # fw.write("好的")
+
+
+def getTree(filename):
+    """
+    取出决策树
+    :param filename:
+    :return:
+    """
+    import pickle
+    with open(filename, 'rb') as f:
+        return pickle.load(f)
+
+
+def fileToDataSet(filename):
+    with open(filename) as f:
+        array = [line.strip().split("\t") for line in f.readlines()]
+        return array
+
+
 if __name__ == '__main__':
-    data = createDataSet()
-    dataSet = data[0]
-    labels = ['alive without water', 'jiaopu']
-    tree = createTree(dataSet, labels)
-    print(tree)
+    # data = createDataSet()
+    # dataSet = data[0]
+    # labels = ['alive without water', 'jiaopu']
+    dataSet = fileToDataSet("F:\pycharm_workapace\数据样本\Ch03\lenses.txt")
+    labels = ['age', 'prescript', 'astigmatic', 'tearRate']
+    tree = createTree(dataSet, labels[:])
+    getTreePlotter.createPlot(tree)  # 画出决策树
+    # result = classify(tree, labels[:], [1, 0])  # 测试决策树
+    # print(result)
+    storeTree(tree, "f:/python_treeplotter.txt")  # 存储决策树
+    # print(getTree("f:/python_treeplotter.txt"))  # 取出决策树
